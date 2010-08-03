@@ -4,7 +4,7 @@ Plugin Name: Ad Sharing
 Plugin URI: 
 Description:
 Author: Andrew Billits (Incsub)
-Version: 1.1.1
+Version: 1.1.2
 Author URI:
 WDP ID: 40
 */
@@ -59,9 +59,8 @@ function ad_sharing_plug_pages() {
 	if ( is_site_admin() ) {
 		add_submenu_page('ms-admin.php', 'Advertising', 'Advertising', 10, 'site-advertising', 'ad_sharing_site_output');
 	}
-	if ( current_user_can('create_users') ) {
-		add_submenu_page('options-general.php', 'Advertising', 'Advertising', '0', 'blog-advertising', 'ad_sharing_blog_output' );
-	}
+  add_submenu_page('options-general.php', 'Advertising', 'Advertising', 'manage_options', 'blog-advertising', 'ad_sharing_blog_output' );
+
 }
 
 function ad_sharing_advertising_quarter() {
