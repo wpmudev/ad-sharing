@@ -1,13 +1,19 @@
-Plugin Name: Ad Sharing
+Plugin Name: Ad Sharing, Ulrich Sossou
 Author: Andrew Billits
 
 Change Log:
 ----------------------------------------------------------------------
 ----------------------------------------------------------------------
 
+1.1.3 - 01/04/2011
+----------------------------------------------------------------------
+- 3.1+ compatibility.
+- Internationalization.
+
 1.1.2 - 08/02/2010
 ----------------------------------------------------------------------
-- Now shows admin menu when create users permission is not given in Super Admin -> Options
+- Now shows admin menu when create users permission is not given in
+Super Admin -> Options
 
 1.1.1 - 06/01/2010
 ----------------------------------------------------------------------

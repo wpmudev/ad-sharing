@@ -1,0 +1,169 @@
+# Translation of the WordPress plugin Ad Sharing 1.1.3 by Andrew Billits, Ulrich Sossou (Incsub).
+# Copyright (C) 2011 Andrew Billits, Ulrich Sossou (Incsub)
+# This file is distributed under the same license as the Ad Sharing package.
+# FIRST AUTHOR <EMAIL@ADDRESS>, 2011.
+#
+#, fuzzy
+msgid ""
+msgstr ""
+"Project-Id-Version: Ad Sharing 1.1.3\n"
+"Report-Msgid-Bugs-To: http://wordpress.org/tag/ad-sharing\n"
+"POT-Creation-Date: 2011-01-05 12:46+0100\n"
+"PO-Revision-Date: 2011-MO-DA HO:MI+ZONE\n"
+"Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
+"Language-Team: LANGUAGE <LL@li.org>\n"
+"Language: \n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=utf-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+
+#: ad-sharing.php:81 ad-sharing.php:88 ad-sharing.php:89 ad-sharing.php:311
+#: ad-sharing.php:430
+msgid "Advertising"
+msgstr ""
+
+#: ad-sharing.php:263
+msgid "Changes saved."
+msgstr ""
+
+#: ad-sharing.php:288 ad-sharing.php:421
+msgid "Nice Try..."
+msgstr ""
+
+#. #-#-#-#-#  ad-sharing.pot (Ad Sharing 1.1.3)  #-#-#-#-#
+#. Plugin Name of the plugin/theme
+#: ad-sharing.php:317
+msgid "Ad Sharing"
+msgstr ""
+
+#: ad-sharing.php:321
+msgid "Site 25% / Blog 75%"
+msgstr ""
+
+#: ad-sharing.php:322
+msgid "Site 50% / Blog 50%"
+msgstr ""
+
+#: ad-sharing.php:323
+msgid "Site 75% / Blog 25%"
+msgstr ""
+
+#: ad-sharing.php:325
+msgid ""
+"Note that the ads are split over page loads. For a 50/50 split site ads will "
+"be shown every other page, etc."
+msgstr ""
+
+#: ad-sharing.php:326
+#, php-format
+msgid ""
+"Site advertising will be shown 100% of the time on blogs that have not setup "
+"advertising."
+msgstr ""
+
+#: ad-sharing.php:331
+msgid "Ad Locations"
+msgstr ""
+
+#: ad-sharing.php:335
+msgid "Before Post Content"
+msgstr ""
+
+#: ad-sharing.php:340
+msgid "After Post Content"
+msgstr ""
+
+#: ad-sharing.php:345
+msgid "Before Page Content"
+msgstr ""
+
+#: ad-sharing.php:350
+msgid "After Page Content"
+msgstr ""
+
+#: ad-sharing.php:356
+msgid "Ads per page"
+msgstr ""
+
+#: ad-sharing.php:366
+msgid ""
+"Maximum number of ads to be shown on a single page. For Google Adsense set "
+"this to \"3\"."
+msgstr ""
+
+#: ad-sharing.php:371 ad-sharing.php:441
+msgid "\"Before\" Ad Code"
+msgstr ""
+
+#: ad-sharing.php:374 ad-sharing.php:444
+msgid "Used before post and page content."
+msgstr ""
+
+#: ad-sharing.php:379 ad-sharing.php:452
+msgid "\"After\" Ad Code"
+msgstr ""
+
+#: ad-sharing.php:382 ad-sharing.php:455
+msgid "Used after post and page content."
+msgstr ""
+
+#: ad-sharing.php:386
+msgid "Message"
+msgstr ""
+
+#: ad-sharing.php:389
+msgid "This message is displayed at the top of the blog advertising page."
+msgstr ""
+
+#: ad-sharing.php:390
+msgid "Tip: Use this message to explain the ad sharing."
+msgstr ""
+
+#: ad-sharing.php:394
+msgid "Main Blog"
+msgstr ""
+
+#: ad-sharing.php:398
+msgid "Hide Ads"
+msgstr ""
+
+#: ad-sharing.php:399
+msgid "Show Ads"
+msgstr ""
+
+#: ad-sharing.php:406 ad-sharing.php:464
+msgid "Save Changes"
+msgstr ""
+
+#: ad-sharing.php:407 ad-sharing.php:465
+msgid "Reset"
+msgstr ""
+
+#: ad-sharing.php:482
+msgid ""
+"Please install the latest version of <a href=\"http://premium.wpmudev.org/"
+"project/update-notifications/\" title=\"Download Now &raquo;\">our free "
+"Update Notifications plugin</a> which helps you stay up-to-date with the "
+"most stable, secure versions of WPMU DEV themes and plugins. <a href="
+"\"http://premium.wpmudev.org/wpmu-dev/update-notifications-plugin-"
+"information/\">More information &raquo;</a>"
+msgstr ""
+
+#. Plugin URI of the plugin/theme
+msgid "http://premium.wpmudev.org/project/ad-sharing"
+msgstr ""
+
+#. Description of the plugin/theme
+msgid ""
+"Simply split advertising revenues with your users with this easy to use "
+"plugin. You can use adsense, context ads or any combination of advertising "
+"you like. Time to reap (and share) blogging rewards!"
+msgstr ""
+
+#. Author of the plugin/theme
+msgid "Andrew Billits, Ulrich Sossou (Incsub)"
+msgstr ""
+
+#. Author URI of the plugin/theme
+msgid "http://premium.wpmudev.org/"
+msgstr ""
