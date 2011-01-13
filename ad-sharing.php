@@ -12,7 +12,7 @@ WDP ID: 40
 */
 
 /*
-Copyright 2007-2009 Incsub (http://incsub.com)
+Copyright 2007-2011 Incsub (http://incsub.com)
 
 This program is free software; you can redistribute it and/or modify
 it under the terms of the GNU General Public License (Version 2 - GPLv2) as published by
@@ -27,6 +27,9 @@ You should have received a copy of the GNU General Public License
 along with this program; if not, write to the Free Software
 Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 */
+
+if( !is_multisite() )
+	exit( 'The Ad Sharing plugin is only compatible with WordPress Multisite.' );
 
 /**
  * Store and count the number of ads on the current page
