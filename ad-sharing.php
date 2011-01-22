@@ -4,7 +4,7 @@ Plugin Name: Ad Sharing
 Plugin URI: http://premium.wpmudev.org/project/ad-sharing
 Description: Simply split advertising revenues with your users with this easy to use plugin. You can use adsense, context ads or any combination of advertising you like. Time to reap (and share) blogging rewards!
 Author: Andrew Billits, Ulrich Sossou (Incsub)
-Version: 1.1.3
+Version: 1.1.4
 Network: true
 Text Domain: ad_sharing
 Author URI: http://premium.wpmudev.org/
@@ -46,6 +46,23 @@ class Ad_Sharing_Page_Ads {
     }
 }
 $ad_sharing_page_ads =& new Ad_Sharing_Page_Ads();
+
+/**
+ * Escaping for textarea values.
+ *
+ * @since 3.1
+ *
+ * Added for compatibility with WordPress 3.0.*
+ *
+ * @param string $text
+ * @return string
+ */
+if( !function_exists( 'esc_textarea' ) ) {
+	function esc_textarea( $text ) {
+		$safe_text = htmlspecialchars( $text, ENT_QUOTES );
+		return apply_filters( 'esc_textarea', $safe_text, $text );
+	}
+}
 
 /**
  * Plugin main class
@@ -482,6 +499,6 @@ if ( !function_exists( 'wdp_un_check' ) ) {
 
 	function wdp_un_check() {
 		if ( !class_exists( 'WPMUDEV_Update_Notifications' ) && current_user_can( 'edit_users' ) )
-			echo '<div class="error fade"><p>' . __('Please install the latest version of <a href="http://premium.wpmudev.org/project/update-notifications/" title="Download Now &raquo;">our free Update Notifications plugin</a> which helps you stay up-to-date with the most stable, secure versions of WPMU DEV themes and plugins. <a href="http://premium.wpmudev.org/wpmu-dev/update-notifications-plugin-information/">More information &raquo;</a>', 'wpmudev') . '</a></p></div>';
+			echo '<div class="error fade"><p>' . __('Please install the latest version of <a href="http://premium.wpmudev.org/project/update-notifications/" title="Download Now &raquo;">our free Update Notifications plugin</a> which helps you stay up-to-date with the most stable, secure versions of WPMU DEV themes and plugins. <a href="http://premium.wpmudev.org/wpmu-dev/update-notifications-plugin-information/">More information &raquo;</a>', 'wpmudev') . '</p></div>';
 	}
 }
