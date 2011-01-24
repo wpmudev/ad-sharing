@@ -4,8 +4,7 @@ Plugin Name: Ad Sharing
 Plugin URI: http://premium.wpmudev.org/project/ad-sharing
 Description: Simply split advertising revenues with your users with this easy to use plugin. You can use adsense, context ads or any combination of advertising you like. Time to reap (and share) blogging rewards!
 Author: Andrew Billits, Ulrich Sossou (Incsub)
-Version: 1.1.4
-Network: true
+Version: 1.1.5
 Text Domain: ad_sharing
 Author URI: http://premium.wpmudev.org/
 WDP ID: 40
@@ -27,9 +26,6 @@ You should have received a copy of the GNU General Public License
 along with this program; if not, write to the Free Software
 Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 */
-
-if( !is_multisite() )
-	exit( 'The Ad Sharing plugin is only compatible with WordPress Multisite.' );
 
 /**
  * Store and count the number of ads on the current page
@@ -65,6 +61,25 @@ if( !function_exists( 'esc_textarea' ) ) {
 }
 
 /**
+ * Retrieve the currently-queried object.  Wrapper for $wp_query->get_queried_object()
+ *
+ * @uses WP_Query::get_queried_object
+ *
+ * @since 3.1.0
+ * @access public
+ *
+ * Added for compatibility with WordPress 3.0.*
+ *
+ * @return object
+ */
+if( !function_exists( 'get_queried_object' ) ) {
+function get_queried_object() {
+	global $wp_query;
+	return $wp_query->get_queried_object();
+}
+}
+
+/**
  * Plugin main class
  **/
 class Ad_Sharing {
@@ -80,10 +95,15 @@ class Ad_Sharing {
 	 * PHP5 constructor
 	 **/
 	function __construct() {
-		add_action( 'network_admin_menu', array( &$this, 'plug_network_pages' ) );
-		add_action( 'admin_menu', array( &$this, 'plug_pages' ) );
+		if ( is_multisite() ) {
+			add_action( 'network_admin_menu', array( &$this, 'plug_network_pages' ) );
+			add_action( 'admin_menu', array( &$this, 'plug_pages' ) );
+		} else {
+			add_action( 'admin_menu', array( &$this, 'plug_singlesite_pages' ) );
+		}
+
 		add_action( 'admin_init', array( &$this, 'process' ) );
-		add_action( 'wp_head', array( &$this, 'advertising_quarter' ) );
+		add_action( 'wp_footer', array( &$this, 'advertising_quarter' ) );
 		add_filter( 'the_content', array( &$this, 'display_ads' ), 20, 1 );
 
 		// load text domain
@@ -98,15 +118,24 @@ class Ad_Sharing {
 	 * Add settings page to network admin
 	 **/
 	function plug_network_pages() {
-		add_submenu_page( 'settings.php', __( 'Advertising', 'ad_sharing' ), __( 'Advertising', 'ad_sharing' ), 'manage_network_options', 'site-advertising', array( &$this, 'site_output' ) );
+		add_submenu_page( 'settings.php', __( 'Advertising', 'ad_sharing' ), __( 'Advertising', 'ad_sharing' ), 'manage_network_options', 'admin-advertising', array( &$this, 'admin_output' ) );
 	}
 
 	/**
 	 * Add settings page to site admin
 	 **/
 	function plug_pages() {
-		add_submenu_page( 'ms-admin.php', __( 'Advertising', 'ad_sharing' ), __( 'Advertising', 'ad_sharing' ), 'manage_network_options', 'site-advertising', array( &$this, 'site_output' ) );
-		add_submenu_page( 'options-general.php', __( 'Advertising', 'ad_sharing' ), __( 'Advertising', 'ad_sharing' ), 'manage_options', 'blog-advertising', array( &$this, 'blog_output' ) );
+		add_submenu_page( 'ms-admin.php', __( 'Advertising', 'ad_sharing' ), __( 'Advertising', 'ad_sharing' ), 'manage_network_options', 'admin-advertising', array( &$this, 'admin_output' ) );
+		add_submenu_page( 'options-general.php', __( 'Advertising', 'ad_sharing' ), __( 'Advertising', 'ad_sharing' ), 'manage_options', 'user-advertising', array( &$this, 'user_output' ) );
+	}
+
+	/**
+	 * Add settings page to site admin
+	 **/
+	function plug_singlesite_pages() {
+		add_submenu_page( 'options-general.php', __( 'Advertising', 'ad_sharing' ), __( 'Advertising', 'ad_sharing' ), 'manage_options', 'admin-advertising', array( &$this, 'admin_output' ) );
+		if ( ! current_user_can( 'edit_others_posts' ) )
+			add_submenu_page( 'profile.php', __( 'Advertising', 'ad_sharing' ), __( 'Advertising', 'ad_sharing' ), 'edit_posts', 'user-advertising', array( &$this, 'user_output' ) );
 	}
 
 	/**
@@ -115,14 +144,64 @@ class Ad_Sharing {
 	 * On each page load the quarter is incremented and the ads will be displayed depending on the current quarter
 	 **/
 	function advertising_quarter() {
-		$advertising_quarter = get_option( 'advertising_quarter' );
+		$advertising_quarter = $this->get_option( 'advertising_quarter' );
 
 		if( in_array( $advertising_quarter, array( 1, 2, 3 ) ) )
 			$advertising_quarter++;
 		else
 			$advertising_quarter = '1';
 
-		update_option( 'advertising_quarter', $advertising_quarter );
+		$this->update_option( 'advertising_quarter', $advertising_quarter );
+	}
+
+	/**
+	 * Get plugin option
+	 *
+	 * If multisite, get_option will be used. If is singlesite, get_user_option will be used instead
+	 **/
+	function get_option( $option, $default = false, $user_id = 0 ) {
+		global $authordata;
+
+		if ( is_multisite() ) {
+			return get_option( $option, $default );
+		} elseif ( ! empty( $user_id ) ) {
+			return get_user_option( $option, $user_id );
+		} elseif ( !empty( $authordata->ID ) ) {
+			return get_user_option( $option, $authordata->ID );
+		} else {
+			$queried_object = get_queried_object();
+
+			if( isset( $queried_object->post_author ) ) {
+				return get_user_option( $option, $queried_object->post_author );
+			} else {
+				return $default;
+			}
+		}
+	}
+
+	/**
+	 * Update plugin option
+	 *
+	 * If multisite, update_option will be used. If is singlesite, update_user_option will be used instead
+	 **/
+	function update_option( $option, $newvalue, $user_id = 0 ) {
+		global $authordata;
+
+		if ( is_multisite() ) {
+			return update_option( $option, $newvalue );
+		} elseif ( ! empty( $user_id ) ) {
+			return update_user_option( $user_id, $option, $newvalue );
+		} elseif ( !empty( $authordata->ID ) ) {
+			return update_user_option( $authordata->ID, $option, $newvalue );
+		} else {
+			$queried_object = get_queried_object();
+
+			if( isset( $queried_object->post_author ) ) {
+				return update_user_option( $queried_object->post_author, $option, $newvalue );
+			} else {
+				return false;
+			}
+		}
 	}
 
 	/**
@@ -130,30 +209,30 @@ class Ad_Sharing {
 	 **/
 	function get_ad_code( $ad_type ) {
 		$advertising_share = get_site_option( 'advertising_share' );
-		$advertising_quarter = get_option( 'advertising_quarter' );
+		$advertising_quarter = $this->get_option( 'advertising_quarter' );
 
 		switch( $advertising_quarter ) {
 			case '1':
-				$ad_code_type = 'blog';
+				$ad_code_type = 'user';
 			break;
 
 			case '2':
 				if ( $advertising_share == '75' )
-					$ad_code_type = 'blog';
+					$ad_code_type = 'user';
 				else
-					$ad_code_type = 'site';
+					$ad_code_type = 'admin';
 			break;
 
 			case '3':
 				if ( $advertising_share == '25' )
-					$ad_code_type = 'site';
+					$ad_code_type = 'admin';
 				else
-					$ad_code_type = 'blog';
+					$ad_code_type = 'user';
 			break;
 
 			case '4':
 			default:
-				$ad_code_type = 'site';
+				$ad_code_type = 'admin';
 			break;
 		}
 
@@ -162,15 +241,15 @@ class Ad_Sharing {
 				$ad_code = '';
 			break;
 
-			case 'blog':
+			case 'user':
 				if ( 'before' == $ad_type )
-					$ad_code = get_option( 'advertising_before_code' );
+					$ad_code = $this->get_option( 'advertising_before_code' );
 
 				if ( 'after' == $ad_type )
-					$ad_code = get_option( 'advertising_after_code' );
+					$ad_code = $this->get_option( 'advertising_after_code' );
 			break;
 
-			case 'site':
+			case 'admin':
 			default:
 				if ( 'before' == $ad_type )
 					$ad_code = get_site_option( 'advertising_before_code' );
@@ -180,7 +259,7 @@ class Ad_Sharing {
 			break;
 		}
 
-		return $ad_code;
+		return ( 'empty' == $ad_code ) ? '' : $ad_code;
 	}
 
 	/**
@@ -192,9 +271,11 @@ class Ad_Sharing {
 		$advertising_ads_per_page = get_site_option( 'advertising_ads_per_page' );
 
 		// if we site admin doesn't want ads to be displayed on main blog?
-		$advertising_main_blog = get_site_option( 'advertising_main_blog', 'hide' );
-		if( 1 == $wpdb->blogid && 'hide' == $advertising_main_blog )
-			return $content;
+		if ( is_multisite() ) {
+			$advertising_main_blog = get_site_option( 'advertising_main_blog', 'hide' );
+			if( 1 == $wpdb->blogid && 'hide' == $advertising_main_blog )
+				return $content;
+		}
 
 		if( 'page' == $post->post_type ) {
 			if ( get_site_option('advertising_location_before_page_content') == '1' ) {
@@ -240,8 +321,8 @@ class Ad_Sharing {
 		$action = isset( $_GET['action'] ) ? $_GET['action'] : '';
 
 		// are we on the plugin network option page and are we saving the settings
-		if( 'site-advertising' == $plugin_page && 'process' == $action ) {
-			check_admin_referer( 'ad-sharing-process_network_options' );
+		if( 'admin-advertising' == $plugin_page && 'process' == $action ) {
+			check_admin_referer( 'ad-sharing-process_admin_options' );
 
 			if ( isset( $_POST[ 'Reset' ] ) ) {
 
@@ -254,7 +335,8 @@ class Ad_Sharing {
 				update_site_option( 'advertising_location_after_post_content', '0' );
 				update_site_option( 'advertising_location_before_page_content', '0' );
 				update_site_option( 'advertising_location_after_page_content', '0' );
-				update_site_option( 'advertising_main_blog', 'hide' );
+				if ( is_multisite() )
+					update_site_option( 'advertising_main_blog', 'hide' );
 
 			} else {
 
@@ -275,26 +357,35 @@ class Ad_Sharing {
 				update_site_option( 'advertising_location_after_post_content', $advertising_location_after_post_content );
 				update_site_option( 'advertising_location_before_page_content', $advertising_location_before_page_content );
 				update_site_option( 'advertising_location_after_page_content', $advertising_location_after_page_content );
-				update_site_option( 'advertising_main_blog', stripslashes( $_POST[ 'advertising_main_blog' ] ) );
+				if ( is_multisite() )
+					update_site_option( 'advertising_main_blog', stripslashes( $_POST[ 'advertising_main_blog' ] ) );
 			}
 
-			$settings_page = version_compare( $wp_version, '3.0.9', '>' ) ? 'network/settings.php' : 'ms-admin.php';
+			if ( is_multisite() )
+				$settings_page = version_compare( $wp_version, '3.0.9', '>' ) ? 'network/settings.php' : 'ms-admin.php';
+			else
+				$settings_page = 'options-general.php';
 
-			wp_redirect( admin_url( $settings_page . '?page=site-advertising&updated=true&updatedmsg=' . urlencode( __( 'Changes saved.', 'ad_sharing' ) ) ) );
+			wp_redirect( admin_url( $settings_page . '?page=admin-advertising&updated=true&updatedmsg=' . urlencode( __( 'Changes saved.', 'ad_sharing' ) ) ) );
 
 		// are we on the plugin site option page and are we saving the settings
-		} elseif( 'blog-advertising' == $plugin_page && 'process' == $action ) {
-			check_admin_referer( 'ad-sharing-process_site_options' );
+		} elseif( 'user-advertising' == $plugin_page && 'process' == $action ) {
+			check_admin_referer( 'ad-sharing-process_user_options' );
+
+			$user_id = get_current_user_id();
 
 			if ( isset( $_POST[ 'Reset' ] ) ) {
-				update_option( 'advertising_before_code', '' );
-				update_option( 'advertising_after_code', '' );
+				$this->update_option( 'advertising_before_code', '', $user_id );
+				$this->update_option( 'advertising_after_code', '', $user_id );
 			} else {
-				update_option( 'advertising_before_code', stripslashes( $_POST[ 'advertising_before_code' ] ) );
-				update_option( 'advertising_after_code', stripslashes( $_POST[ 'advertising_after_code' ] ) );
+				$this->update_option( 'advertising_before_code', stripslashes( $_POST[ 'advertising_before_code' ] ), $user_id );
+				$this->update_option( 'advertising_after_code', stripslashes( $_POST[ 'advertising_after_code' ] ), $user_id );
 			}
 
-			wp_redirect( admin_url( 'options-general.php?page=blog-advertising&updated=true' ) );
+			if ( is_multisite() )
+				wp_redirect( admin_url( 'options-general.php?page=user-advertising&updated=true' ) );
+			else
+				wp_redirect( admin_url( 'profile.php?page=user-advertising&updated=true' ) );
 
 		}
 	}
@@ -302,16 +393,16 @@ class Ad_Sharing {
 	/**
 	 * Network option page content
 	 **/
-	function site_output() {
+	function admin_output() {
+		$options_permission = is_multisite() ? 'manage_network_options' : 'manage_options';
 
-		if( !current_user_can( 'manage_network_options' ) ) {
+		if( !current_user_can( $options_permission ) ) {
 			echo '<p>' . __( 'Nice Try...', 'ad_sharing' ) . '</p>';
 			return;
 		}
 
-		if( isset( $_GET['updated'] ) ) {
+		if( isset( $_GET['updated'] ) )
 			echo '<div id="message" class="updated fade"><p>' . urldecode( $_GET['updatedmsg'] ) . '</p></div>';
-		}
 
 		// retrieve options to be displayed
 		$advertising_before_code = get_site_option( 'advertising_before_code' );
@@ -329,8 +420,8 @@ class Ad_Sharing {
 
 		<div class="wrap">
 			<h2><?php _e( 'Advertising', 'ad_sharing' ) ?></h2>
-			<form method="post" action="?page=site-advertising&action=process">
-				<?php wp_nonce_field( 'ad-sharing-process_network_options' ); ?>
+			<form method="post" action="?page=admin-advertising&action=process">
+				<?php wp_nonce_field( 'ad-sharing-process_admin_options' ); ?>
 
 				<table class="form-table">
 					<tr valign="top">
@@ -410,6 +501,7 @@ class Ad_Sharing {
 							<br /><?php _e( 'Tip: Use this message to explain the ad sharing.', 'ad_sharing' ); ?>
 						</td>
 					</tr>
+					<?php if ( is_multisite() ) { ?>
 					<tr valign="top">
 						<th scope="row"><?php _e( 'Main Blog', 'ad_sharing' ) ?></th>
 						<td>
@@ -420,6 +512,7 @@ class Ad_Sharing {
 							</select>
 						</td>
 					</tr>
+					<?php } ?>
 				</table>
 
 				<p class="submit">
@@ -435,23 +528,26 @@ class Ad_Sharing {
 	/**
 	 * Network option page content
 	 **/
-	function blog_output() {
+	function user_output() {
+		$options_permission = is_multisite() ? 'manage_options' : 'edit_posts';
 
-		if( !current_user_can( 'manage_options' ) ) {
+		if( !current_user_can( $options_permission ) ) {
 			echo '<p>' . __( 'Nice Try...' ) . '</p>';
 			return;
 		}
 
 		$advertising_message = stripslashes( get_site_option( 'advertising_message' ) );
 		$advertising_message = ( 'empty' !== $advertising_message ) ? $advertising_message : '';
+
+		$user_id = get_current_user_id();
 		?>
 
 		<div class="wrap">
 			<h2><?php _e( 'Advertising', 'ad_sharing' ) ?></h2>
 			<p><?php echo $advertising_message; ?></p>
 
-			<form method="post" action="options-general.php?page=blog-advertising&action=process">
-				<?php wp_nonce_field( 'ad-sharing-process_site_options' ); ?>
+			<form method="post" action="<?php echo $_SERVER['REQUEST_URI'] ?>&action=process">
+				<?php wp_nonce_field( 'ad-sharing-process_user_options' ); ?>
 
 				<table class="form-table">
 					<?php
@@ -460,7 +556,7 @@ class Ad_Sharing {
 						<tr valign="top">
 							<th scope="row"><?php _e( '"Before" Ad Code', 'ad_sharing' ) ?></th>
 							<td>
-								<textarea name="advertising_before_code" type="text" rows="5" wrap="soft" id="advertising_before_code" style="width: 95%" /><?php echo esc_textarea( get_option('advertising_before_code') ) ?></textarea>
+								<textarea name="advertising_before_code" type="text" rows="5" wrap="soft" id="advertising_before_code" style="width: 95%" /><?php echo esc_textarea( $this->get_option( 'advertising_before_code', false, $user_id ) ) ?></textarea>
 								<br /><?php _e( 'Used before post and page content.', 'ad_sharing' ) ?>
 							</td>
 						</tr>
@@ -471,7 +567,7 @@ class Ad_Sharing {
 					<tr valign="top">
 							<th scope="row"><?php _e( '"After" Ad Code', 'ad_sharing' ) ?></th>
 							<td>
-								<textarea name="advertising_after_code" type="text" rows="5" wrap="soft" id="advertising_after_code" style="width: 95%" /><?php echo esc_textarea( get_option('advertising_after_code') ) ?></textarea>
+								<textarea name="advertising_after_code" type="text" rows="5" wrap="soft" id="advertising_after_code" style="width: 95%" /><?php echo esc_textarea( $this->get_option( 'advertising_after_code', false, $user_id ) ) ?></textarea>
 								<br /><?php _e( 'Used after post and page content.', 'ad_sharing' ) ?>
 							</td>
 						</tr>
