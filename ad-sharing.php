@@ -4,7 +4,7 @@ Plugin Name: Ad Sharing
 Plugin URI: http://premium.wpmudev.org/project/ad-sharing
 Description: Simply split advertising revenues with your users with this easy to use plugin. You can use adsense, context ads or any combination of advertising you like. Time to reap (and share) blogging rewards!
 Author: Andrew Billits, Ulrich Sossou (Incsub)
-Version: 1.1.5
+Version: 1.1.6
 Text Domain: ad_sharing
 Author URI: http://premium.wpmudev.org/
 WDP ID: 40
@@ -242,11 +242,19 @@ class Ad_Sharing {
 			break;
 
 			case 'user':
-				if ( 'before' == $ad_type )
-					$ad_code = $this->get_option( 'advertising_before_code' );
+				if ( 'before' == $ad_type ) {
+					if ( $before_code = $this->get_option( 'advertising_before_code' ) )
+						$ad_code = $before_code;
+					else
+						$ad_code = get_site_option( 'advertising_before_code' );
+				}
 
-				if ( 'after' == $ad_type )
-					$ad_code = $this->get_option( 'advertising_after_code' );
+				if ( 'after' == $ad_type ) {
+					if ( $after_code = $this->get_option( 'advertising_after_code' ) )
+						$ad_code = $after_code;
+					else
+						$ad_code = get_site_option( 'advertising_after_code' );
+				}
 			break;
 
 			case 'admin':
@@ -429,12 +437,18 @@ class Ad_Sharing {
 						<td>
 							<?php $advertising_share = get_site_option('advertising_share'); ?>
 							<select name="advertising_share" id="advertising_share" >
-								<option value="75"<?php selected( $advertising_share, '75' ) ?>><?php _e( 'Site 25% / Blog 75%', 'ad_sharing' ); ?></option>
-								<option value="50"<?php selected( $advertising_share, '50' ) ?>><?php _e( 'Site 50% / Blog 50%', 'ad_sharing' ); ?></option>
-								<option value="25"<?php selected( $advertising_share, '25' ) ?>><?php _e( 'Site 75% / Blog 25%', 'ad_sharing' ); ?></option>
+								<option value="75"<?php selected( $advertising_share, '75' ) ?>><?php _e( 'Site 25% / User 75%', 'ad_sharing' ); ?></option>
+								<option value="50"<?php selected( $advertising_share, '50' ) ?>><?php _e( 'Site 50% / User 50%', 'ad_sharing' ); ?></option>
+								<option value="25"<?php selected( $advertising_share, '25' ) ?>><?php _e( 'Site 75% / User 25%', 'ad_sharing' ); ?></option>
 							</select>
 							<br /><?php _e( 'Note that the ads are split over page loads. For a 50/50 split site ads will be shown every other page, etc.', 'ad_sharing' ) ?>
-							<br /><?php _e( 'Site advertising will be shown 100% of the time on blogs that have not setup advertising.', 'ad_sharing' ) ?>
+							<br />
+							<?php
+							if ( is_multisite() )
+								_e( 'Site advertising will be shown 100% of the time on blogs that have not setup advertising.', 'ad_sharing' );
+							else
+								_e( 'Site advertising will be shown 100% of the time on articles if their authors have not setup advertising.', 'ad_sharing' );
+							?>
 						</td>
 					</tr>
 
@@ -497,7 +511,7 @@ class Ad_Sharing {
 						<th scope="row"><?php _e( 'Message', 'ad_sharing' ) ?></th>
 						<td>
 							<textarea name="advertising_message" type="text" rows="5" wrap="soft" id="advertising_message" style="width: 95%" /><?php echo esc_textarea( $advertising_message ); ?></textarea>
-							<br /><?php _e( 'This message is displayed at the top of the blog advertising page.', 'ad_sharing' ) ?>
+							<br /><?php _e( 'This message is displayed at the top of the user advertising settings page.', 'ad_sharing' ) ?>
 							<br /><?php _e( 'Tip: Use this message to explain the ad sharing.', 'ad_sharing' ); ?>
 						</td>
 					</tr>
