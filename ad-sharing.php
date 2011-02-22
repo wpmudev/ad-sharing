@@ -4,7 +4,7 @@ Plugin Name: Ad Sharing
 Plugin URI: http://premium.wpmudev.org/project/ad-sharing
 Description: Simply split advertising revenues with your users with this easy to use plugin. You can use adsense, context ads or any combination of advertising you like. Time to reap (and share) blogging rewards!
 Author: Andrew Billits, Ulrich Sossou (Incsub)
-Version: 1.1.6
+Version: 1.1.7
 Text Domain: ad_sharing
 Author URI: http://premium.wpmudev.org/
 WDP ID: 40
@@ -339,6 +339,7 @@ class Ad_Sharing {
 				update_site_option( 'advertising_after_code', 'empty' );
 				update_site_option( 'advertising_message', 'empty' );
 				update_site_option( 'advertising_ads_per_page', '1' );
+				update_site_option( 'advertising_filter_ads', '1' );
 				update_site_option( 'advertising_location_before_post_content', '0' );
 				update_site_option( 'advertising_location_after_post_content', '0' );
 				update_site_option( 'advertising_location_before_page_content', '0' );
@@ -361,6 +362,7 @@ class Ad_Sharing {
 				update_site_option( 'advertising_message', $advertising_message );
 				update_site_option( 'advertising_share', stripslashes( $_POST[ 'advertising_share' ] ) );
 				update_site_option( 'advertising_ads_per_page', stripslashes( $_POST[ 'advertising_ads_per_page' ] ) );
+				update_site_option( 'advertising_filter_ads', stripslashes( $_POST[ 'advertising_filter_ads' ] ) );
 				update_site_option( 'advertising_location_before_post_content', $advertising_location_before_post_content );
 				update_site_option( 'advertising_location_after_post_content', $advertising_location_after_post_content );
 				update_site_option( 'advertising_location_before_page_content', $advertising_location_before_page_content );
@@ -386,8 +388,8 @@ class Ad_Sharing {
 				$this->update_option( 'advertising_before_code', '', $user_id );
 				$this->update_option( 'advertising_after_code', '', $user_id );
 			} else {
-				$this->update_option( 'advertising_before_code', stripslashes( $_POST[ 'advertising_before_code' ] ), $user_id );
-				$this->update_option( 'advertising_after_code', stripslashes( $_POST[ 'advertising_after_code' ] ), $user_id );
+				$this->update_option( 'advertising_before_code', $this->filter_ad( stripslashes( $_POST[ 'advertising_before_code' ] ) ), $user_id );
+				$this->update_option( 'advertising_after_code', $this->filter_ad( stripslashes( $_POST[ 'advertising_after_code' ] ) ), $user_id );
 			}
 
 			if ( is_multisite() )
@@ -396,6 +398,33 @@ class Ad_Sharing {
 				wp_redirect( admin_url( 'profile.php?page=user-advertising&updated=true' ) );
 
 		}
+	}
+
+	/**
+	 * Filter ad code for safety
+	 **/
+	function filter_ad( $code ) {
+		if ( get_site_option('advertising_filter_ads') == '1' && !empty( $code ) ) {
+			preg_match_all( '/=(.*?);/', $code, $matches );
+			foreach ( $matches[1] as $match ) {
+				$values[] = preg_replace( '/\s|"|pub-/', '', $match );
+			}
+			foreach ( $values as $value ) {
+				if ( is_numeric( $value ) )
+					$params[] = $value;
+			}
+			$code = "<script type=\"text/javascript\"><!--
+google_ad_client = \"pub-$params[0]\";
+google_ad_slot = \"$params[1]\";
+google_ad_width = $params[2];
+google_ad_height = $params[3];
+//-->
+</script>
+<script type=\"text/javascript\"
+src=\"http://pagead2.googlesyndication.com/pagead/show_ads.js\">
+</script>";
+		}
+		return $code;
 	}
 
 	/**
@@ -450,6 +479,17 @@ class Ad_Sharing {
 								_e( 'Site advertising will be shown 100% of the time on articles if their authors have not setup advertising.', 'ad_sharing' );
 							?>
 						</td>
+					</tr>
+
+					<tr valign="top">
+						<th scope="row"><?php _e( 'Filter Ads', 'ad_sharing' ) ?></th>
+						<td>
+							<label for="advertising_filter_ads">
+								<input name="advertising_filter_ads" id="advertising_filter_ads" value="1" type="checkbox"<?php checked( get_site_option('advertising_filter_ads'), '1' ) ?>>
+								<?php _e( 'Filter ads code for safety (Google Adsense only)', 'ad_sharing' ); ?>
+							</label>
+						</td>
+					</tr>
 					</tr>
 
 					<tr valign="top">
