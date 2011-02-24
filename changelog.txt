@@ -5,6 +5,12 @@ Change Log:
 ----------------------------------------------------------------------
 ----------------------------------------------------------------------
 
+1.1.8 - 02/24/2011
+----------------------------------------------------------------------
+- Enhancement: Don't display anything when adsense code entered by user
+is not valid
+- Enhancement: Always show user ads when admin didn't set any ad
+
 1.1.7 - 02/22/2011
 ----------------------------------------------------------------------
 - Enhancement: Added option to filter ad.

@@ -4,7 +4,7 @@ Plugin Name: Ad Sharing
 Plugin URI: http://premium.wpmudev.org/project/ad-sharing
 Description: Simply split advertising revenues with your users with this easy to use plugin. You can use adsense, context ads or any combination of advertising you like. Time to reap (and share) blogging rewards!
 Author: Andrew Billits, Ulrich Sossou (Incsub)
-Version: 1.1.7
+Version: 1.1.8
 Text Domain: ad_sharing
 Author URI: http://premium.wpmudev.org/
 WDP ID: 40
@@ -237,10 +237,6 @@ class Ad_Sharing {
 		}
 
 		switch( $ad_code_type ) {
-			case 'empty':
-				$ad_code = '';
-			break;
-
 			case 'user':
 				if ( 'before' == $ad_type ) {
 					if ( $before_code = $this->get_option( 'advertising_before_code' ) )
@@ -259,11 +255,19 @@ class Ad_Sharing {
 
 			case 'admin':
 			default:
-				if ( 'before' == $ad_type )
-					$ad_code = get_site_option( 'advertising_before_code' );
+				if ( 'before' == $ad_type ) {
+					if ( $before_code = get_site_option( 'advertising_before_code' ) !== 'empty' )
+						$ad_code = $before_code;
+					else
+						$ad_code = $this->get_option( 'advertising_before_code' );
+				}
 
-				if ( 'after' == $ad_type )
-					$ad_code = get_site_option( 'advertising_after_code' );
+				if ( 'after' == $ad_type ) {
+					if ( $after_code = get_site_option( 'advertising_after_code' ) )
+						$ad_code = $after_code;
+					else
+						$ad_code = $this->get_option( 'advertising_after_code' );
+				}
 			break;
 		}
 
@@ -409,11 +413,16 @@ class Ad_Sharing {
 			foreach ( $matches[1] as $match ) {
 				$values[] = preg_replace( '/\s|"|pub-/', '', $match );
 			}
+			if ( count( $values ) !== 4 )
+				$code = '';
 			foreach ( $values as $value ) {
 				if ( is_numeric( $value ) )
 					$params[] = $value;
+				else
+					$code = '';
 			}
-			$code = "<script type=\"text/javascript\"><!--
+			if ( ! empty( $code ) ) {
+				$code = "<script type=\"text/javascript\"><!--
 google_ad_client = \"pub-$params[0]\";
 google_ad_slot = \"$params[1]\";
 google_ad_width = $params[2];
@@ -423,6 +432,7 @@ google_ad_height = $params[3];
 <script type=\"text/javascript\"
 src=\"http://pagead2.googlesyndication.com/pagead/show_ads.js\">
 </script>";
+			}
 		}
 		return $code;
 	}
