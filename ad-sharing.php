@@ -4,7 +4,7 @@ Plugin Name: Ad Sharing
 Plugin URI: http://premium.wpmudev.org/project/ad-sharing
 Description: Simply split advertising revenues with your users with this easy to use plugin. You can use adsense, context ads or any combination of advertising you like. Time to reap (and share) blogging rewards!
 Author: Andrew Billits, Ulrich Sossou (Incsub)
-Version: 1.1.8
+Version: 1.1.9
 Text Domain: ad_sharing
 Author URI: http://premium.wpmudev.org/
 WDP ID: 40
@@ -38,7 +38,7 @@ class Ad_Sharing_Page_Ads {
     }
 
     function increase() {
-        $this->page_ads += $this->page_ads;
+        $this->page_ads = $this->page_ads + 1;
     }
 }
 $ad_sharing_page_ads =& new Ad_Sharing_Page_Ads();
@@ -280,7 +280,10 @@ class Ad_Sharing {
 	function display_ads( $content ) {
 		global $wpdb, $ad_sharing_page_ads, $post;
 
-		$advertising_ads_per_page = get_site_option( 'advertising_ads_per_page' );
+		if ( ! in_the_loop() )
+			return;
+
+		$advertising_ads_per_page = (int) get_site_option( 'advertising_ads_per_page' );
 
 		// if we site admin doesn't want ads to be displayed on main blog?
 		if ( is_multisite() ) {
@@ -408,22 +411,32 @@ class Ad_Sharing {
 	 * Filter ad code for safety
 	 **/
 	function filter_ad( $code ) {
-		if ( get_site_option('advertising_filter_ads') == '1' && !empty( $code ) ) {
-			preg_match_all( '/=(.*?);/', $code, $matches );
-			foreach ( $matches[1] as $match ) {
-				$values[] = preg_replace( '/\s|"|pub-/', '', $match );
-			}
-			if ( count( $values ) !== 4 )
-				$code = '';
-			foreach ( $values as $value ) {
-				if ( is_numeric( $value ) )
-					$params[] = $value;
-				else
+		if ( get_site_option('advertising_filter_ads') == '1' && ! empty( $code ) ) {
+			if ( strpos( $code, '<script ' ) !== false ) {
+
+				preg_match_all( '/=(.*?);/', $code, $matches );
+				foreach ( $matches[1] as $match ) {
+					$values[] = preg_replace( '/\s|"/', '', $match );
+				}
+
+				if ( count( $values ) !== 4 )
 					$code = '';
-			}
-			if ( ! empty( $code ) ) {
-				$code = "<script type=\"text/javascript\"><!--
-google_ad_client = \"pub-$params[0]\";
+
+				foreach ( $values as $value ) {
+					if ( is_numeric( $value ) ) {
+						$params[] = $value;
+					} else {
+						preg_match( '/[a-z]{2}-pub|pub/', $value, $pub );
+						if ( is_array( $pub ) && is_numeric( $value = ltrim( $value, $pub[0] . '-' ) ) )
+							$params[] = $value;
+						else
+							$code = '';
+					}
+				}
+
+				if ( ! empty( $code ) ) {
+					$code = "<script type=\"text/javascript\"><!--
+google_ad_client = \"$pub[0]-$params[0]\";
 google_ad_slot = \"$params[1]\";
 google_ad_width = $params[2];
 google_ad_height = $params[3];
@@ -432,6 +445,10 @@ google_ad_height = $params[3];
 <script type=\"text/javascript\"
 src=\"http://pagead2.googlesyndication.com/pagead/show_ads.js\">
 </script>";
+				}
+
+			} else {
+				$code = wp_kses_post( $code );
 			}
 		}
 		return $code;
@@ -496,7 +513,7 @@ src=\"http://pagead2.googlesyndication.com/pagead/show_ads.js\">
 						<td>
 							<label for="advertising_filter_ads">
 								<input name="advertising_filter_ads" id="advertising_filter_ads" value="1" type="checkbox"<?php checked( get_site_option('advertising_filter_ads'), '1' ) ?>>
-								<?php _e( 'Filter ads code for safety (Google Adsense only)', 'ad_sharing' ); ?>
+								<?php _e( 'Filter ads code for safety (HTML and Google Adsense only)', 'ad_sharing' ); ?>
 							</label>
 						</td>
 					</tr>

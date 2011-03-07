@@ -5,6 +5,12 @@ Change Log:
 ----------------------------------------------------------------------
 ----------------------------------------------------------------------
 
+1.1.9 - 03/07/2011
+----------------------------------------------------------------------
+- Bug fix: maximum number of ads per page option not working
+- Bug fix: allow adsense ads with country code when filtering enabled
+- Enhancement: allow html when filtering enabled
+
 1.1.8 - 02/24/2011
 ----------------------------------------------------------------------
 - Enhancement: Don't display anything when adsense code entered by user
