@@ -4,7 +4,7 @@ Plugin Name: Ad Sharing
 Plugin URI: http://premium.wpmudev.org/project/ad-sharing
 Description: Simply split advertising revenues with your users with this easy to use plugin. You can use adsense, context ads or any combination of advertising you like. Time to reap (and share) blogging rewards!
 Author: Andrew Billits, Ulrich Sossou (Incsub)
-Version: 1.1.9
+Version: 1.1.9.1
 Text Domain: ad_sharing
 Author URI: http://premium.wpmudev.org/
 WDP ID: 40
@@ -281,7 +281,7 @@ class Ad_Sharing {
 		global $wpdb, $ad_sharing_page_ads, $post;
 
 		if ( ! in_the_loop() )
-			return;
+			return $content;
 
 		$advertising_ads_per_page = (int) get_site_option( 'advertising_ads_per_page' );
 
