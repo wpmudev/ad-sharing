@@ -4,7 +4,7 @@ Plugin Name: Ad Sharing
 Plugin URI: http://premium.wpmudev.org/project/ad-sharing
 Description: Simply split advertising revenues with your users with this easy to use plugin. You can use adsense, context ads or any combination of advertising you like. Time to reap (and share) blogging rewards!
 Author: Andrew Billits, Ulrich Sossou (Incsub)
-Version: 1.1.9.1
+Version: 1.2
 Text Domain: ad_sharing
 Author URI: http://premium.wpmudev.org/
 WDP ID: 40
@@ -125,7 +125,9 @@ class Ad_Sharing {
 	 * Add settings page to site admin
 	 **/
 	function plug_pages() {
-		add_submenu_page( 'ms-admin.php', __( 'Advertising', 'ad_sharing' ), __( 'Advertising', 'ad_sharing' ), 'manage_network_options', 'admin-advertising', array( &$this, 'admin_output' ) );
+		if (version_compare( $wp_version, '3.0.9', '>' )) {
+			add_submenu_page( 'ms-admin.php', __( 'Advertising', 'ad_sharing' ), __( 'Advertising', 'ad_sharing' ), 'manage_network_options', 'admin-advertising', array( &$this, 'admin_output' ) );
+		}
 		add_submenu_page( 'options-general.php', __( 'Advertising', 'ad_sharing' ), __( 'Advertising', 'ad_sharing' ), 'manage_options', 'user-advertising', array( &$this, 'user_output' ) );
 	}
 
@@ -256,7 +258,7 @@ class Ad_Sharing {
 			case 'admin':
 			default:
 				if ( 'before' == $ad_type ) {
-					if ( $before_code = get_site_option( 'advertising_before_code' ) !== 'empty' )
+					if ( $before_code = get_site_option( 'advertising_before_code' ) )
 						$ad_code = $before_code;
 					else
 						$ad_code = $this->get_option( 'advertising_before_code' );
@@ -271,7 +273,7 @@ class Ad_Sharing {
 			break;
 		}
 
-		return ( 'empty' == $ad_code ) ? '' : $ad_code;
+		return ( !$ad_code ) ? '' : $ad_code;
 	}
 
 	/**
@@ -342,9 +344,9 @@ class Ad_Sharing {
 			if ( isset( $_POST[ 'Reset' ] ) ) {
 
 				update_site_option( 'advertising_share', '50' );
-				update_site_option( 'advertising_before_code', 'empty' );
-				update_site_option( 'advertising_after_code', 'empty' );
-				update_site_option( 'advertising_message', 'empty' );
+				update_site_option( 'advertising_before_code', '' );
+				update_site_option( 'advertising_after_code', '' );
+				update_site_option( 'advertising_message', '' );
 				update_site_option( 'advertising_ads_per_page', '1' );
 				update_site_option( 'advertising_filter_ads', '1' );
 				update_site_option( 'advertising_location_before_post_content', '0' );
@@ -356,13 +358,13 @@ class Ad_Sharing {
 
 			} else {
 
-				$advertising_before_code = !empty( $_POST[ 'advertising_before_code' ] ) ? stripslashes( $_POST[ 'advertising_before_code' ] ) : 'empty';
-				$advertising_after_code = !empty( $_POST[ 'advertising_after_code' ] ) ? stripslashes( $_POST[ 'advertising_after_code' ] ) : 'empty';
-				$advertising_message = !empty( $_POST[ 'advertising_message' ] ) ? stripslashes( $_POST[ 'advertising_message' ] ) : 'empty';
-				$advertising_location_before_post_content = !empty( $_POST[ 'advertising_location_before_post_content' ] ) ? stripslashes( $_POST[ 'advertising_location_before_post_content' ] ) : 'empty';
-				$advertising_location_after_post_content = !empty( $_POST[ 'advertising_location_after_post_content' ] ) ? stripslashes( $_POST[ 'advertising_location_after_post_content' ] ) : 'empty';
-				$advertising_location_before_page_content = !empty( $_POST[ 'advertising_location_before_page_content' ] ) ? stripslashes( $_POST[ 'advertising_location_before_page_content' ] ) : 'empty';
-				$advertising_location_after_page_content = !empty( $_POST[ 'advertising_location_after_page_content' ] ) ? stripslashes( $_POST[ 'advertising_location_after_page_content' ] ) : 'empty';
+				$advertising_before_code = !empty( $_POST[ 'advertising_before_code' ] ) ? stripslashes( $_POST[ 'advertising_before_code' ] ) : '';
+				$advertising_after_code = !empty( $_POST[ 'advertising_after_code' ] ) ? stripslashes( $_POST[ 'advertising_after_code' ] ) : '';
+				$advertising_message = !empty( $_POST[ 'advertising_message' ] ) ? stripslashes( $_POST[ 'advertising_message' ] ) : '';
+				$advertising_location_before_post_content = !empty( $_POST[ 'advertising_location_before_post_content' ] ) ? stripslashes( $_POST[ 'advertising_location_before_post_content' ] ) : '';
+				$advertising_location_after_post_content = !empty( $_POST[ 'advertising_location_after_post_content' ] ) ? stripslashes( $_POST[ 'advertising_location_after_post_content' ] ) : '';
+				$advertising_location_before_page_content = !empty( $_POST[ 'advertising_location_before_page_content' ] ) ? stripslashes( $_POST[ 'advertising_location_before_page_content' ] ) : '';
+				$advertising_location_after_page_content = !empty( $_POST[ 'advertising_location_after_page_content' ] ) ? stripslashes( $_POST[ 'advertising_location_after_page_content' ] ) : '';
 
 				update_site_option( 'advertising_before_code', $advertising_before_code );
 				update_site_option( 'advertising_after_code', $advertising_after_code );
@@ -619,6 +621,18 @@ src=\"http://pagead2.googlesyndication.com/pagead/show_ads.js\">
 
 		$advertising_message = stripslashes( get_site_option( 'advertising_message' ) );
 		$advertising_message = ( 'empty' !== $advertising_message ) ? $advertising_message : '';
+
+		$show_settings = (
+			get_site_option('advertising_location_before_post_content') == '1' ||
+			get_site_option('advertising_location_before_page_content') == '1' ||
+			get_site_option('advertising_location_after_post_content') == '1' ||
+			get_site_option('advertising_location_after_page_content') == '1'
+		);
+
+		if (!$show_settings) {
+			_e('No settings currently available', 'ad_sharing');
+			return true;
+		}
 
 		$user_id = get_current_user_id();
 		?>

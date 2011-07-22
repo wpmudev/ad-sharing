@@ -5,6 +5,12 @@ Change Log:
 ----------------------------------------------------------------------
 ----------------------------------------------------------------------
 
+1.2 - 07/22/2011
+----------------------------------------------------------------------
+- Adding compatibility page only if necessary.
+- Fix for empty values handling.
+- Added informative message when no settings available to show.
+
 1.1.9.1 - 05/20/2011
 ----------------------------------------------------------------------
 - Bug fix: "display_ads" filter returns contents outside the loop
