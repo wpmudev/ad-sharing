@@ -2,7 +2,14 @@
 
 **INACTIVE NOTICE: This plugin is unsupported by WPMUDEV, we've published it here for those technical types who might want to fork and maintain it for their needs.**
 
-## Ad Sharing allows you to offer advertising revenue to users on your single site or Multisite network.
+## Translations
+
+Translation files can be found at https://github.com/wpmudev/translations
+
+
+## Usage
+
+Ad Sharing allows you to offer advertising revenue to users on your single site or Multisite network.
 
 One of the best ways to attract new users to your site or network is to offer them a cut of the advertising profits from their blogs. Ad Sharing lets you do just that.  Ad Sharing makes it easy to split revenue in a fair way based on the number of impressions on users' blogs. The plugin keeps track of all the numbers for you, splitting revenue based on your selections. Add this as a new feature to monetize your network and encourage your users to start generating more income for you–and for themselves.
 
@@ -19,7 +26,7 @@ You've put in the hard work to get your network up and running so why not make s
 
 You don't need to edit theme files. Simply install and activate the plugin and choose:
 
-*   <span style="line-height: 13px;">To display ads before and/or after your content</span>
+*   To display ads before and/or after your content
 *   Impressions split you would like to make with your users
 *   Code you would like displayed
 
